@@ -7,9 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-app.use(express.static('public'));
-
-io.on('connection', (socket) => {
+app.use(express.static(__dirname));io.on('connection', (socket) => {
     console.log('User connected to Free Aura ✨');
 
     // 1. ميزة الرسم الجماعي
