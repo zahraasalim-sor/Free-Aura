@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Aura ✨</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --accent: #d4a5ff; --glass: rgba(255, 255, 255, 0.2); }
+        
+        /* جماليات الموقع */
+        * { cursor: none !important; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+        body { 
+            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1f9 100%); 
+            font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; 
+        }
+        #magic-cursor {
+            width: 20px; height: 20px; background: var(--accent); border-radius: 50%;
+            position: fixed; pointer-events: none; z-index: 9999; box-shadow: 0 0 15px var(--accent);
+        }
+        .glass-card {
+            background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+        }
+
+        /* حاويات الرسم والمكالمات */
+        main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; margin-top: 60px; }
+        canvas { background: white; border-radius: 15px; cursor: crosshair; width: 100%; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        
+        .chat-box { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+        video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; }
+
+        footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 11px; color: #888; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <div id="magic-cursor"></div>
+    <header style="text-align: center; padding: 20px; font-size: 28px; font-weight: bold;">Free Aura ✨</header>
+
+    <main>
+        <div class="glass-card">
+            <h3 style="margin-top:0">Collaborative Whiteboard 🎨</h3>
+            <canvas id="whiteboard" width="800" height="450"></canvas>
+            <div style="margin-top:10px; display:flex; gap:15px; align-items:center;">
+                <input type="color" id="colorPicker" value="#d4a5ff">
+                <input type="range" id="lineWidth" min="1" max="15" value="5">
+                <button onclick="clearCanvas()" style="background:none; border:none; color:var(--accent); font-size:20px;"><i class="fas fa-eraser"></i></button>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <h3 style="margin:0">Private Space 💬</h3>
+                <div>
+                    <button onclick="startCall()" style="background:none; border:none; color:var(--accent); font-size:18px;"><i class="fas fa-video"></i></button>
+                    <button style="background:none; border:none; color:var(--accent); font-size:18px;"><i class="fas fa-phone"></i></button>
+                </div>
+            </div>
+            
+            <video id="localVideo" autoPlay muted></video>
+            <video id="remoteVideo" autoPlay></video>
+
+            <div id="chatLog" class="chat-box"></div>
+            
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="msgInput" placeholder="Write something..." style="flex:1; border-radius:20px; border:none; padding:8px 15px;">
+                <button onclick="sendPrivateMsg()" style="background:var(--accent); border:none; color:white; border-radius:50%; width:35px; height:35px;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <div class="glass-card" style="position:fixed; top:20px; right:20px; padding:10px; width:200px;">
+        <iframe width="100%" height="20" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1143845863&color=%23d4a5ff&auto_play=false&hide_related=true"></iframe>
+    </div>
+
+    <footer>Created by Zahraa Salim Hallool | All Rights Reserved ©</footer>
+
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        // 1. الماوس السحري
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.getElementById('magic-cursor');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // 2. الرسم الجماعي
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+        canvas.addEventListener('mousemove', (e) => {
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const data = { x: e.clientX - rect.left, y: e.clientY - rect.top, color: document.getElementById('colorPicker').value, size: document.getElementById('lineWidth').value };
+            socket.emit('drawing', data);
+            draw(data);
+        });
+        function draw(data) {
+            ctx.lineWidth = data.size; ctx.lineCap = 'round'; ctx.strokeStyle = data.color;
+            ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
+        }
+        socket.on('drawing', draw);
+        function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); socket.emit('clear_canvas'); }
+        socket.on('clear_canvas', () => ctx.clearRect(0,0,canvas.width,canvas.height));
+
+        // 3. المحادثة الخاصة
+        function sendPrivateMsg() {
+            const msg = document.getElementById('msgInput').value;
+            if(!msg) return;
+            socket.emit('private_msg', { text: msg, user: 'Zahraa' });
+            appendMsg('You: ' + msg);
+            document.getElementById('msgInput').value = '';
+        }
+        socket.on('receive_private_msg', (data) => appendMsg(data.user + ': ' + data.text));
+        function appendMsg(text) {
+            const div = document.createElement('div');
+            div.innerText = text;
+            div.style.background = 'rgba(255,255,255,0.5)';
+            div.style.padding = '5px 10px';
+            div.style.borderRadius = '10px';
+            document.getElementById('chatLog').appendChild(div);
+        }
+
+        // 4. مكالمات الفيديو (WebRTC Logic)
+        async function startCall() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = stream;
+            // هنا يتم إرسال الإشارة عبر Socket.io للطرف الآخر
+            socket.emit('call_request', { signal: 'init', from: 'Zahraa' });
+        }
+        socket.on('incoming_call', (data) => {
+            if(confirm('Incoming call from ' + data.from + '. Answer?')) {
+                startCall(); // قبول المكالمة وفتح الكاميرا
+            }
+        });
+    </script>
+</body>
+</html>
