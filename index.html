@@ -1,143 +1,270 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Aura ✨</title>
+    <title>Free Aura ♡</title>
     <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --accent: #d4a5ff; --glass: rgba(255, 255, 255, 0.2); }
-        
-        /* جماليات الموقع */
-        * { cursor: none !important; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
-        body { 
-            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1f9 100%); 
-            font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; 
-        }
-        #magic-cursor {
-            width: 20px; height: 20px; background: var(--accent); border-radius: 50%;
-            position: fixed; pointer-events: none; z-index: 9999; box-shadow: 0 0 15px var(--accent);
-        }
-        .glass-card {
-            background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+        :root {
+            --primary-pink: #fce4ec;
+            --dark-pink: #f06292;
+            --aura-gradient: linear-gradient(45deg, #f8bbd0, #e1bee7, #bbdefb);
         }
 
-        /* حاويات الرسم والمكالمات */
-        main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; margin-top: 60px; }
-        canvas { background: white; border-radius: 15px; cursor: crosshair; width: 100%; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
-        
-        .chat-box { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; }
-        video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--aura-gradient);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 11px; color: #888; letter-spacing: 1px; }
+        header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 15px;
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px border rgba(255, 255, 255, 0.18);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Whiteboard */
+        #canvas-container {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* Media Controls */
+        .music-player {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .audio-btn {
+            background: var(--dark-pink);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        /* Gallery */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .gallery img {
+            width: 100%;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .gallery img:hover { transform: scale(1.05); }
+
+        /* Chat */
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        .message {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            padding: 10px;
+            color: #666;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        button.tool {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div id="magic-cursor"></div>
-    <header style="text-align: center; padding: 20px; font-size: 28px; font-weight: bold;">Free Aura ✨</header>
+<header>
+    <h1 style="margin:0; color: #ad1457;">Free Aura ♡</h1>
+</header>
 
-    <main>
-        <div class="glass-card">
-            <h3 style="margin-top:0">Collaborative Whiteboard 🎨</h3>
-            <canvas id="whiteboard" width="800" height="450"></canvas>
-            <div style="margin-top:10px; display:flex; gap:15px; align-items:center;">
-                <input type="color" id="colorPicker" value="#d4a5ff">
-                <input type="range" id="lineWidth" min="1" max="15" value="5">
-                <button onclick="clearCanvas()" style="background:none; border:none; color:var(--accent); font-size:20px;"><i class="fas fa-eraser"></i></button>
-            </div>
+<div class="main-container">
+    <div class="panel">
+        <div class="music-player">
+            <h4><i class="fas fa-music"></i> مـشغل الأغـاني</h4>
+            <button class="audio-btn" onclick="togglePlay()"><i class="fas fa-play"></i></button>
+            <input type="file" id="musicInput" accept="audio/*" style="display:none" onchange="loadMusic(event)">
+            <button onclick="document.getElementById('musicInput').click()" style="border:none; background:none; cursor:pointer; color: #ad1457;">رفع أغنية 🎵</button>
+            <audio id="audioPlayer"></audio>
         </div>
-
-        <div class="glass-card">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <h3 style="margin:0">Private Space 💬</h3>
-                <div>
-                    <button onclick="startCall()" style="background:none; border:none; color:var(--accent); font-size:18px;"><i class="fas fa-video"></i></button>
-                    <button style="background:none; border:none; color:var(--accent); font-size:18px;"><i class="fas fa-phone"></i></button>
-                </div>
-            </div>
-            
-            <video id="localVideo" autoPlay muted></video>
-            <video id="remoteVideo" autoPlay></video>
-
-            <div id="chatLog" class="chat-box"></div>
-            
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="msgInput" placeholder="Write something..." style="flex:1; border-radius:20px; border:none; padding:8px 15px;">
-                <button onclick="sendPrivateMsg()" style="background:var(--accent); border:none; color:white; border-radius:50%; width:35px; height:35px;"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </main>
-
-    <div class="glass-card" style="position:fixed; top:20px; right:20px; padding:10px; width:200px;">
-        <iframe width="100%" height="20" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1143845863&color=%23d4a5ff&auto_play=false&hide_related=true"></iframe>
+        <hr>
+        <h4><i class="fas fa-image"></i> معرض الصور</h4>
+        <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="uploadImage(event)">
+        <button onclick="document.getElementById('imageInput').click()" class="tool">إضافة صورة ✨</button>
+        <div class="gallery" id="galleryContainer"></div>
     </div>
 
-    <footer>Created by Zahraa Salim Hallool | All Rights Reserved ©</footer>
+    <div class="panel" id="canvas-container">
+        <canvas id="whiteboard"></canvas>
+        <div class="controls">
+            <input type="color" id="colorPicker" value="#f06292">
+            <input type="range" id="sizePicker" min="1" max="20" value="5">
+            <button class="tool" onclick="clearCanvas()">مسح الكل 🗑️</button>
+        </div>
+    </div>
 
-    <script>
-        const socket = io();
-        const canvas = document.getElementById('whiteboard');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
+    <div class="panel">
+        <h4><i class="fas fa-comments"></i> Private Space</h4>
+        <div id="chat-messages"></div>
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="chatInput" placeholder="اكتبي رسالة..." style="flex-grow:1; border-radius:10px; border:1px solid #ddd; padding:5px;">
+            <button onclick="sendMessage()" style="border:none; background:var(--dark-pink); color:white; border-radius:10px; padding:5px 10px;">إرسال</button>
+        </div>
+    </div>
+</div>
 
-        // 1. الماوس السحري
-        document.addEventListener('mousemove', (e) => {
-            const cursor = document.getElementById('magic-cursor');
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-        });
+<footer>
+    Created by Zahraa Salim Hallool | All Rights Reserved © 2026
+</footer>
 
-        // 2. الرسم الجماعي
-        canvas.addEventListener('mousedown', () => drawing = true);
-        canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
-        canvas.addEventListener('mousemove', (e) => {
-            if (!drawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const data = { x: e.clientX - rect.left, y: e.clientY - rect.top, color: document.getElementById('colorPicker').value, size: document.getElementById('lineWidth').value };
-            socket.emit('drawing', data);
-            draw(data);
-        });
-        function draw(data) {
-            ctx.lineWidth = data.size; ctx.lineCap = 'round'; ctx.strokeStyle = data.color;
-            ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
+<script>
+    const socket = io();
+    const canvas = document.getElementById('whiteboard');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    // Resize canvas
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight - 60;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Drawing Logic
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', draw);
+
+    function draw(e) {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const color = document.getElementById('colorPicker').value;
+        const size = document.getElementById('sizePicker').value;
+
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = color;
+
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+
+        socket.emit('drawing', { x, y, color, size, isDrawing: drawing });
+    }
+
+    socket.on('drawing', (data) => {
+        ctx.lineWidth = data.size;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = data.color;
+        ctx.lineTo(data.x, data.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(data.x, data.y);
+    });
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        socket.emit('clear_canvas');
+    }
+    socket.on('clear_canvas', () => ctx.clearRect(0, 0, canvas.width, canvas.height));
+
+    // Chat Logic
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        if (input.value) {
+            socket.emit('private_msg', input.value);
+            displayMessage('أنتِ: ' + input.value);
+            input.value = '';
         }
-        socket.on('drawing', draw);
-        function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); socket.emit('clear_canvas'); }
-        socket.on('clear_canvas', () => ctx.clearRect(0,0,canvas.width,canvas.height));
+    }
 
-        // 3. المحادثة الخاصة
-        function sendPrivateMsg() {
-            const msg = document.getElementById('msgInput').value;
-            if(!msg) return;
-            socket.emit('private_msg', { text: msg, user: 'Zahraa' });
-            appendMsg('You: ' + msg);
-            document.getElementById('msgInput').value = '';
-        }
-        socket.on('receive_private_msg', (data) => appendMsg(data.user + ': ' + data.text));
-        function appendMsg(text) {
-            const div = document.createElement('div');
-            div.innerText = text;
-            div.style.background = 'rgba(255,255,255,0.5)';
-            div.style.padding = '5px 10px';
-            div.style.borderRadius = '10px';
-            document.getElementById('chatLog').appendChild(div);
-        }
+    socket.on('receive_private_msg', (msg) => displayMessage('صديقة: ' + msg));
 
-        // 4. مكالمات الفيديو (WebRTC Logic)
-        async function startCall() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('localVideo').srcObject = stream;
-            // هنا يتم إرسال الإشارة عبر Socket.io للطرف الآخر
-            socket.emit('call_request', { signal: 'init', from: 'Zahraa' });
-        }
-        socket.on('incoming_call', (data) => {
-            if(confirm('Incoming call from ' + data.from + '. Answer?')) {
-                startCall(); // قبول المكالمة وفتح الكاميرا
-            }
-        });
-    </script>
-</body>
-</html>
+    function displayMessage(msg) {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.textContent = msg;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Music Logic
+    function loadMusic(e) {
+        const file = e.target.files[0];
+        const url = URL.createObjectURL(file);
+        document.getElementById('audioPlayer').src = url;
+    }
+
+    function togglePlay() {
+        const player = document.getElementById('audioPlayer');
+        const btn = document.
