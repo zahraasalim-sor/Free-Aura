@@ -7,45 +7,45 @@
     <script src="/socket.io/socket.io.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --main-bg: #fff5f8; --aura-pink: #f06292; --glass: rgba(255, 255, 255, 0.8); }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--main-bg); display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Navigation Sidebar */
-        .sidebar { width: 80px; background: white; border-left: 1px solid #eee; display: flex; flex-direction: column; align-items: center; padding: 20px 0; z-index: 100; }
-        .nav-item { margin-bottom: 25px; color: #ccc; cursor: pointer; transition: 0.3s; font-size: 22px; }
-        .nav-item.active { color: var(--aura-pink); }
+    :root {
+  --aura-pink: #f06292;
+  --glass: rgba(255, 255, 255, 0.5); /* تأثير زجاجي شفاف */
+}
 
-        /* Content Area */
-        .content { flex-grow: 1; overflow-y: auto; padding: 20px; position: relative; }
-        .page { display: none; max-width: 800px; margin: 0 auto; }
-        .page.active { display: block; }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #fbcfe8, #e9d5ff) !important; /* خلفية متدرجة وردية بنسفجية */
+  cursor: none; /* لإضافة الماوس السحري لاحقاً */
+}
 
-        /* 1. Instagram Feed Style */
-        .feed-card { background: white; border-radius: 15px; margin-bottom: 20px; overflow: hidden; border: 1px solid #eee; }
-        .feed-header { padding: 10px; display: flex; align-items: center; justify-content: space-between; }
-        .feed-img { width: 100%; display: block; }
-        .feed-actions { padding: 10px; display: flex; gap: 15px; font-size: 18px; }
-        .follow-btn { background: var(--aura-pink); color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+/* تحويل الأقسام إلى ستايل زجاجي Aesthetic */
+.sidebar, .main-content, .right-panel, .glass-card {
+  background: var(--glass) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border-radius: 30px !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+}
 
-        /* 2. Professional Drawing & Journal */
-        .canvas-container { position: relative; background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        canvas { border-radius: 20px; cursor: crosshair; background: #fff; width: 100%; height: 500px; }
-        .brush-panel { display: flex; flex-wrap: wrap; gap: 10px; background: var(--glass); padding: 15px; border-radius: 15px; margin-top: 10px; }
-        .tool-btn { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; }
+/* تعديل العنوان ليكون ✨ بدل القلب */
+.logo {
+  font-family: 'Dancing Script', cursive;
+  color: #ad1457;
+  font-size: 2rem;
+}
 
-        /* 3. Music Bot */
-        .music-player { background: #1e1e1e; color: white; padding: 20px; border-radius: 20px; text-align: center; }
-        .search-box { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-bottom: 15px; }
-
-        /* 4. Tasks */
-        .task-input { display: flex; gap: 10px; margin-bottom: 20px; }
-        .task-list { list-style: none; padding: 0; }
-        .task-item { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* Profile */
-        .profile-card { text-align: center; background: white; padding: 30px; border-radius: 20px; }
-        .profile-pic { width: 100px; height: 100px; border-radius: 50%; background: #eee; margin-bottom: 10px; }
-    </style>
+/* حقوق الملكية لزهراء في الأسفل */
+.footer-rights {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #888;
+}
+</style>
 </head>
 <body>
 
